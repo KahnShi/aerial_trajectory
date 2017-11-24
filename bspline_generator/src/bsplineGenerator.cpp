@@ -58,44 +58,41 @@ namespace bspline_generator{
   void bsplineGenerator::waitForKeyposes(){
     gap_passing::Keyposes keyposes_srv;
     keyposes_srv.request.inquiry = true;
-    if (sampling_plannar_client_.call(keyposes_srv)){
-      if (!keyposes_srv.response.available_flag){
-        ROS_ERROR("keyposes is not available");
-        return;
-      }
-      else if (keyposes_srv.response.states_cnt == 0){
-        ROS_ERROR("keyposes size is 0");
-        return;
-      }
-      else{
-        control_pts_ptr_->num = keyposes_srv.response.states_cnt;
-        control_pts_ptr_->dim = keyposes_srv.response.dim + 1; // keyposes do not have z axis info
-        control_pts_ptr_->degree = 5; // todo
-        control_pts_ptr_->is_uniform = true; // todo
-        control_pts_ptr_->start_time = 10.0;
-        control_pts_ptr_->end_time = 20.0;
-
-        control_pts_ptr_->control_pts.layout.dim[0].size = control_pts_ptr_->num;
-        control_pts_ptr_->control_pts.layout.dim[1].size = control_pts_ptr_->dim;
-        control_pts_ptr_->control_pts.layout.dim[0].stride = control_pts_ptr_->num * control_pts_ptr_->dim;
-        control_pts_ptr_->control_pts.layout.dim[1].stride = control_pts_ptr_->dim;
-        control_pts_ptr_->control_pts.layout.data_offset = 0;
-
-        control_pts_ptr_->control_pts.data.resize(0);
-        for (int i = 0; i < control_pts_ptr_->num; ++i){
-          int index_s = i * keyposes_srv.response.dim;
-          for (int j = 0; j < 2; ++j) // add x, y axis data
-            control_pts_ptr_->control_pts.data.push_back(keyposes_srv.response.data.data[index_s + j]);
-          control_pts_ptr_->control_pts.data.push_back(0.0); // fixed data for z axis
-          for (int j = 2; j < control_pts_ptr_->dim - 1; ++j) // add yaw and joint angles data
-            control_pts_ptr_->control_pts.data.push_back(keyposes_srv.response.data.data[index_s + j]);
-        }
-        displayBspline();
-      }
+    while (!sampling_plannar_client_.call(keyposes_srv)){
+      // waiting for keyposes
+    }
+    if (!keyposes_srv.response.available_flag){
+      ROS_WARN("keyposes is not available, try again");
+      waitForKeyposes();
+    }
+    else if (keyposes_srv.response.states_cnt == 0){
+      ROS_WARN("keyposes size is 0, try again");
+      waitForKeyposes();
     }
     else{
-        ROS_ERROR("Failed to call service add_two_ints");
-        return;
+      control_pts_ptr_->num = keyposes_srv.response.states_cnt;
+      control_pts_ptr_->dim = keyposes_srv.response.dim + 1; // keyposes do not have z axis info
+      control_pts_ptr_->degree = 5; // todo
+      control_pts_ptr_->is_uniform = true; // todo
+      control_pts_ptr_->start_time = 10.0;
+      control_pts_ptr_->end_time = 20.0;
+
+      control_pts_ptr_->control_pts.layout.dim[0].size = control_pts_ptr_->num;
+      control_pts_ptr_->control_pts.layout.dim[1].size = control_pts_ptr_->dim;
+      control_pts_ptr_->control_pts.layout.dim[0].stride = control_pts_ptr_->num * control_pts_ptr_->dim;
+      control_pts_ptr_->control_pts.layout.dim[1].stride = control_pts_ptr_->dim;
+      control_pts_ptr_->control_pts.layout.data_offset = 0;
+
+      control_pts_ptr_->control_pts.data.resize(0);
+      for (int i = 0; i < control_pts_ptr_->num; ++i){
+        int index_s = i * keyposes_srv.response.dim;
+        for (int j = 0; j < 2; ++j) // add x, y axis data
+          control_pts_ptr_->control_pts.data.push_back(keyposes_srv.response.data.data[index_s + j]);
+        control_pts_ptr_->control_pts.data.push_back(0.0); // fixed data for z axis
+        for (int j = 2; j < control_pts_ptr_->dim - 1; ++j) // add yaw and joint angles data
+          control_pts_ptr_->control_pts.data.push_back(keyposes_srv.response.data.data[index_s + j]);
+      }
+      displayBspline();
     }
   }
 
