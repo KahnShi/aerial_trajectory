@@ -39,28 +39,41 @@ namespace aerial_plannar{
   AerialPlannar::AerialPlannar(ros::NodeHandle nh, ros::NodeHandle nhp){
     nh_ = nh;
     nhp_ = nhp;
+    joint_num_ = 3;
+
+    aerial_controller_ = boost::shared_ptr<AerialControllerInterface>(new AerialControllerInterface(nh_, nhp_, joint_num_));
     endposes_server_ = nh_.advertiseService("endposes_server", &AerialPlannar::getEndposes, this);
+
+
+    uav_takeoff_flag_ = false;
+    aerial_controller_->robot_start();
+    ROS_INFO("[AerialPlannar] Published robot start topic.");
+    sleep(2.5);
+    aerial_controller_->takeoff();
+    sleep(18.0); // waiting for finishing taking off
+    ROS_INFO("[AerialPlannar] Published takeoff topic.");
+    uav_takeoff_flag_ = true;
   }
 
   AerialPlannar::~AerialPlannar(){
   }
 
   bool AerialPlannar::getEndposes(gap_passing::Endposes::Request &req, gap_passing::Endposes::Response &res){
-    if (ros::ok){
+    if (ros::ok && uav_takeoff_flag_){
       res.dim = 6;
-      res.start_pose.data.push_back(-1.5 - 0.5);
-      res.start_pose.data.push_back(0);
-      res.start_pose.data.push_back(-1.57);
-      res.start_pose.data.push_back(1.57);
-      res.start_pose.data.push_back(1.57);
-      res.start_pose.data.push_back(1.57);
+      // todo: convert to cog frame
+      res.start_pose.data.push_back(aerial_controller_->baselink_pos_.getX());
+      res.start_pose.data.push_back(aerial_controller_->baselink_pos_.getY());
+      res.start_pose.data.push_back(aerial_controller_->baselink_ang_.getZ());
+      for (int i = 0; i < joint_num_; ++i)
+        res.start_pose.data.push_back(aerial_controller_->joints_ang_vec_[i]);
 
-      res.end_pose.data.push_back(3 - 0.5);
-      res.end_pose.data.push_back(0);
-      res.end_pose.data.push_back(-1.57);
-      res.end_pose.data.push_back(1.57);
-      res.end_pose.data.push_back(1.57);
-      res.end_pose.data.push_back(1.57);
+      tf::Vector3 target_offset(4.0, 0.0, 0.0);
+      res.end_pose.data.push_back(aerial_controller_->baselink_pos_.getX() + target_offset.getX());
+      res.end_pose.data.push_back(aerial_controller_->baselink_pos_.getY() + target_offset.getY());
+      res.end_pose.data.push_back(aerial_controller_->baselink_ang_.getZ() + target_offset.getZ());
+      for (int i = 0; i < joint_num_; ++i)
+        res.end_pose.data.push_back(aerial_controller_->joints_ang_vec_[i]);
     }
   }
 }

@@ -33,40 +33,69 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef AERIAL_PLANNAR_H_
-#define AERIAL_PLANNAR_H_
+#ifndef AERIAL_CONTROLLER_INTERFACE_H_
+#define AERIAL_CONTROLLER_INTERFACE_H_
 
 /* ros */
 #include <ros/ros.h>
-#include <gap_passing/Endposes.h>
+#include <std_msgs/Empty.h>
+#include <sensor_msgs/JointState.h>
+#include <nav_msgs/Odometry.h>
+#include <aerial_robot_base/FlightNav.h>
 
 /* utils */
 #include <iostream>
 #include <vector>
+#include <tf/transform_broadcaster.h>
+#include <tf/transform_listener.h>
 
-/* local */
-#include <bspline_generator/AerialControllerInterface.h>
-using namespace aerial_controller_interface;
-
-namespace aerial_plannar{
-  class AerialPlannar{
+namespace aerial_controller_interface{
+  class AerialControllerInterface{
   public:
-    AerialPlannar(ros::NodeHandle nh, ros::NodeHandle nhp);
-    ~AerialPlannar();
+    AerialControllerInterface(ros::NodeHandle nh, ros::NodeHandle nhp, int joint_num);
+    ~AerialControllerInterface();
+    void robot_start();
+    void takeoff();
+    void ff_controller(std::vector<double> &ff_term, std::vector<double> &target);
+
+    tf::Vector3 baselink_pos_;
+    tf::Vector3 baselink_vel_;
+    tf::Vector3 baselink_ang_;
+    tf::Vector3 baselink_w_;
+    tf::Vector3 cog_pos_;
+    tf::Vector3 cog_vel_;
+    tf::Vector3 cog_ang_;
+    tf::Vector3 cog_w_;
+    std::vector<double> joints_ang_vec_;
+    std::vector<double> joints_vel_vec_;
 
   private:
     ros::NodeHandle nh_;
     ros::NodeHandle nhp_;
-    ros::ServiceServer endposes_server_;
-    std::vector<double> start_pose_;
-    std::vector<double> end_pose_;
+    double controller_freq_;
 
+    int state_dim_;
     int joint_num_;
-    bool uav_takeoff_flag_;
+    nav_msgs::Odometry baselink_odom_;
+    nav_msgs::Odometry cog_odom_;
 
-    boost::shared_ptr<AerialControllerInterface> aerial_controller_;
+    bool move_start_flag_;
 
-    bool getEndposes(gap_passing::Endposes::Request &req, gap_passing::Endposes::Response &res);
+    ros::Publisher robot_start_pub_;
+    ros::Publisher takeoff_pub_;
+    ros::Publisher joints_ctrl_pub_;
+    ros::Publisher flight_nav_pub_;
+
+    ros::Subscriber joints_state_sub_;
+    ros::Subscriber baselink_odom_sub_;
+    ros::Subscriber cog_odom_sub_;
+    ros::Subscriber move_start_flag_sub_;
+
+    void init_param();
+    void jointStatesCallback(const sensor_msgs::JointStateConstPtr& joints_msg);
+    void baselinkOdomCallback(const nav_msgs::OdometryConstPtr& odom_msg);
+    void cogOdomCallback(const nav_msgs::OdometryConstPtr& odom_msg);
+    void moveStartCallback(const std_msgs::Empty msg);
   };
 }
 #endif
