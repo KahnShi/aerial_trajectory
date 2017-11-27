@@ -33,35 +33,31 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef BSPLINE_GENERATOR_H_
-#define BSPLINE_GENERATOR_H_
+#ifndef AERIAL_PLANNAR_H_
+#define AERIAL_PLANNAR_H_
 
 /* ros */
 #include <ros/ros.h>
-#include <bspline_ros/bsplineGenerate.h>
-#include <std_msgs/MultiArrayDimension.h>
-#include <gap_passing/Keyposes.h>
+#include <gap_passing/Endposes.h>
 
 /* utils */
 #include <iostream>
 #include <vector>
 
-namespace bspline_generator{
-  class bsplineGenerator{
+namespace aerial_plannar{
+  class AerialPlannar{
   public:
-    bsplineGenerator(ros::NodeHandle nh, ros::NodeHandle nhp);
-    ~bsplineGenerator();
-    void manuallySetControlPts();
-    void displayBspline();
+    AerialPlannar(ros::NodeHandle nh, ros::NodeHandle nhp);
+    ~AerialPlannar();
 
   private:
     ros::NodeHandle nh_;
     ros::NodeHandle nhp_;
-    boost::shared_ptr<bsplineGenerate> bspline_ptr_;
-    bspline_ros::ControlPoints* control_pts_ptr_;
-    ros::ServiceClient sampling_plannar_client_;
-    void waitForKeyposes();
+    ros::ServiceServer endposes_server_;
+    std::vector<double> start_pose_;
+    std::vector<double> end_pose_;
 
+    bool getEndposes(gap_passing::Endposes::Request &req, gap_passing::Endposes::Response &res);
   };
 }
 #endif

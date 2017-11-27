@@ -33,10 +33,10 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <bspline_generator/bsplineGenerator.h>
+#include <bspline_generator/BsplineGenerator.h>
 
 namespace bspline_generator{
-  bsplineGenerator::bsplineGenerator(ros::NodeHandle nh, ros::NodeHandle nhp){
+  BsplineGenerator::BsplineGenerator(ros::NodeHandle nh, ros::NodeHandle nhp){
     nh_ = nh;
     nhp_ = nhp;
     sampling_plannar_client_ = nh_.serviceClient<gap_passing::Keyposes>("keyposes_server");
@@ -52,10 +52,10 @@ namespace bspline_generator{
     waitForKeyposes();
   }
 
-  bsplineGenerator::~bsplineGenerator(){
+  BsplineGenerator::~BsplineGenerator(){
   }
 
-  void bsplineGenerator::waitForKeyposes(){
+  void BsplineGenerator::waitForKeyposes(){
     gap_passing::Keyposes keyposes_srv;
     keyposes_srv.request.inquiry = true;
     while (!sampling_plannar_client_.call(keyposes_srv)){
@@ -96,7 +96,7 @@ namespace bspline_generator{
     }
   }
 
-  void bsplineGenerator::manuallySetControlPts(){
+  void BsplineGenerator::manuallySetControlPts(){
     control_pts_ptr_->num = 5;
     control_pts_ptr_->dim = 3;
     control_pts_ptr_->degree = 2;
@@ -139,7 +139,7 @@ namespace bspline_generator{
       control_pts_ptr_->knots.data.push_back(1.0);
   }
 
-  void bsplineGenerator::displayBspline(){
+  void BsplineGenerator::displayBspline(){
     bspline_ptr_->bsplineParamInput(control_pts_ptr_);
     bspline_ptr_->splinePathDisplay();
     bspline_ptr_->controlPolygonDisplay();

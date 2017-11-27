@@ -33,31 +33,34 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef AERIAL_PLANNAR_H_
-#define AERIAL_PLANNAR_H_
-
-/* ros */
-#include <ros/ros.h>
-#include <gap_passing/Endposes.h>
-
-/* utils */
-#include <iostream>
-#include <vector>
+#include <bspline_generator/AerialPlannar.h>
 
 namespace aerial_plannar{
-  class aerialPlannar{
-  public:
-    aerialPlannar(ros::NodeHandle nh, ros::NodeHandle nhp);
-    ~aerialPlannar();
+  AerialPlannar::AerialPlannar(ros::NodeHandle nh, ros::NodeHandle nhp){
+    nh_ = nh;
+    nhp_ = nhp;
+    endposes_server_ = nh_.advertiseService("endposes_server", &AerialPlannar::getEndposes, this);
+  }
 
-  private:
-    ros::NodeHandle nh_;
-    ros::NodeHandle nhp_;
-    ros::ServiceServer endposes_server_;
-    std::vector<double> start_pose_;
-    std::vector<double> end_pose_;
+  AerialPlannar::~AerialPlannar(){
+  }
 
-    bool getEndposes(gap_passing::Endposes::Request &req, gap_passing::Endposes::Response &res);
-  };
+  bool AerialPlannar::getEndposes(gap_passing::Endposes::Request &req, gap_passing::Endposes::Response &res){
+    if (ros::ok){
+      res.dim = 6;
+      res.start_pose.data.push_back(-1.5 - 0.5);
+      res.start_pose.data.push_back(0);
+      res.start_pose.data.push_back(-1.57);
+      res.start_pose.data.push_back(1.57);
+      res.start_pose.data.push_back(1.57);
+      res.start_pose.data.push_back(1.57);
+
+      res.end_pose.data.push_back(3 - 0.5);
+      res.end_pose.data.push_back(0);
+      res.end_pose.data.push_back(-1.57);
+      res.end_pose.data.push_back(1.57);
+      res.end_pose.data.push_back(1.57);
+      res.end_pose.data.push_back(1.57);
+    }
+  }
 }
-#endif

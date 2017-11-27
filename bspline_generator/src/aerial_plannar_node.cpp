@@ -33,7 +33,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <bspline_generator/aerial_plannar.h>
+#include <bspline_generator/AerialPlannar.h>
 
 int main(int argc, char **argv){
   ros::init (argc, argv, "aerial_plannar");
@@ -41,7 +41,7 @@ int main(int argc, char **argv){
   ros::NodeHandle nh;
   ros::NodeHandle nhp("~");
 
-  aerial_plannar::aerialPlannar *plannar = new aerial_plannar::aerialPlannar(nh, nhp);
+  aerial_plannar::AerialPlannar *plannar = new aerial_plannar::AerialPlannar(nh, nhp);
   ROS_INFO("Aerial plannar finished.");
 
   ros::spin();

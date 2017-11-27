@@ -33,34 +33,35 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <bspline_generator/aerial_plannar.h>
+#ifndef BSPLINE_GENERATOR_H_
+#define BSPLINE_GENERATOR_H_
 
-namespace aerial_plannar{
-  aerialPlannar::aerialPlannar(ros::NodeHandle nh, ros::NodeHandle nhp){
-    nh_ = nh;
-    nhp_ = nhp;
-    endposes_server_ = nh_.advertiseService("endposes_server", &aerialPlannar::getEndposes, this);
-  }
+/* ros */
+#include <ros/ros.h>
+#include <bspline_ros/bsplineGenerate.h>
+#include <std_msgs/MultiArrayDimension.h>
+#include <gap_passing/Keyposes.h>
 
-  aerialPlannar::~aerialPlannar(){
-  }
+/* utils */
+#include <iostream>
+#include <vector>
 
-  bool aerialPlannar::getEndposes(gap_passing::Endposes::Request &req, gap_passing::Endposes::Response &res){
-    if (ros::ok){
-      res.dim = 6;
-      res.start_pose.data.push_back(-1.5 - 0.5);
-      res.start_pose.data.push_back(0);
-      res.start_pose.data.push_back(-1.57);
-      res.start_pose.data.push_back(1.57);
-      res.start_pose.data.push_back(1.57);
-      res.start_pose.data.push_back(1.57);
+namespace bspline_generator{
+  class BsplineGenerator{
+  public:
+    BsplineGenerator(ros::NodeHandle nh, ros::NodeHandle nhp);
+    ~BsplineGenerator();
+    void manuallySetControlPts();
+    void displayBspline();
 
-      res.end_pose.data.push_back(3 - 0.5);
-      res.end_pose.data.push_back(0);
-      res.end_pose.data.push_back(-1.57);
-      res.end_pose.data.push_back(1.57);
-      res.end_pose.data.push_back(1.57);
-      res.end_pose.data.push_back(1.57);
-    }
-  }
+  private:
+    ros::NodeHandle nh_;
+    ros::NodeHandle nhp_;
+    boost::shared_ptr<bsplineGenerate> bspline_ptr_;
+    bspline_ros::ControlPoints* control_pts_ptr_;
+    ros::ServiceClient sampling_plannar_client_;
+    void waitForKeyposes();
+
+  };
 }
+#endif

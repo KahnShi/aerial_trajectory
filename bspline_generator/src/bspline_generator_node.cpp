@@ -33,7 +33,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include <bspline_generator/bsplineGenerator.h>
+#include <bspline_generator/BsplineGenerator.h>
 
 int main(int argc, char **argv){
   ros::init (argc, argv, "bspline_generator");
@@ -41,7 +41,7 @@ int main(int argc, char **argv){
   ros::NodeHandle nh;
   ros::NodeHandle nhp("~");
 
-  bspline_generator::bsplineGenerator *spline = new bspline_generator::bsplineGenerator(nh, nhp);
+  bspline_generator::BsplineGenerator *spline = new bspline_generator::BsplineGenerator(nh, nhp);
   ROS_INFO("Display finished.");
 
   ros::spin();
