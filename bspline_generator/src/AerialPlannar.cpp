@@ -42,8 +42,6 @@ namespace aerial_plannar{
     joint_num_ = 3;
 
     aerial_controller_ = boost::shared_ptr<AerialControllerInterface>(new AerialControllerInterface(nh_, nhp_, joint_num_));
-    endposes_server_ = nh_.advertiseService("endposes_server", &AerialPlannar::getEndposes, this);
-
 
     uav_takeoff_flag_ = false;
     aerial_controller_->robot_start();
@@ -53,9 +51,19 @@ namespace aerial_plannar{
     sleep(18.0); // waiting for finishing taking off
     ROS_INFO("[AerialPlannar] Published takeoff topic.");
     uav_takeoff_flag_ = true;
+
+    endposes_server_ = nh_.advertiseService("endposes_server", &AerialPlannar::getEndposes, this);
+    spline_init_thread_ = boost::thread(boost::bind(&AerialPlannar::splineInitThread, this));
   }
 
   AerialPlannar::~AerialPlannar(){
+    spline_init_thread_.interrupt();
+    spline_init_thread_.join();
+  }
+
+  void AerialPlannar::splineInitThread(){
+    spline_ = boost::shared_ptr<BsplineGenerator>(new BsplineGenerator(nh_, nhp_));
+    ROS_INFO("bspline initalized.");
   }
 
   bool AerialPlannar::getEndposes(gap_passing::Endposes::Request &req, gap_passing::Endposes::Response &res){

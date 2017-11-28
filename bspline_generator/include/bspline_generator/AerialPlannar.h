@@ -46,7 +46,14 @@
 
 /* local */
 #include <bspline_generator/AerialControllerInterface.h>
+#include <bspline_generator/BsplineGenerator.h>
+
+/* thread */
+#include <boost/thread/mutex.hpp>
+#include <boost/thread.hpp>
+
 using namespace aerial_controller_interface;
+using namespace bspline_generator;
 
 namespace aerial_plannar{
   class AerialPlannar{
@@ -64,9 +71,13 @@ namespace aerial_plannar{
     int joint_num_;
     bool uav_takeoff_flag_;
 
+    boost::thread spline_init_thread_;
+
     boost::shared_ptr<AerialControllerInterface> aerial_controller_;
+    boost::shared_ptr<BsplineGenerator> spline_;
 
     bool getEndposes(gap_passing::Endposes::Request &req, gap_passing::Endposes::Response &res);
+    void splineInitThread();
   };
 }
 #endif

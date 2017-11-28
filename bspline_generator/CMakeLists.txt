@@ -61,4 +61,4 @@ target_link_libraries(bspline_generator_node
 
 add_executable(aerial_plannar_node src/aerial_plannar_node.cpp)
 target_link_libraries(aerial_plannar_node
-  ${catkin_LIBRARIES} AerialPlannar AerialControllerInterface)
+  ${catkin_LIBRARIES} AerialPlannar AerialControllerInterface BsplineGenerator)
