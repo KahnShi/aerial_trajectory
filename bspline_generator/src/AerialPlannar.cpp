@@ -40,8 +40,9 @@ namespace aerial_plannar{
     nh_ = nh;
     nhp_ = nhp;
     joint_num_ = 3;
+    controller_freq_ = 100.0;
 
-    aerial_controller_ = boost::shared_ptr<AerialControllerInterface>(new AerialControllerInterface(nh_, nhp_, joint_num_));
+    aerial_controller_ = boost::shared_ptr<AerialControllerInterface>(new AerialControllerInterface(nh_, nhp_, joint_num_, controller_freq_));
 
     uav_takeoff_flag_ = false;
     aerial_controller_->robot_start();
@@ -51,9 +52,14 @@ namespace aerial_plannar{
     sleep(18.0); // waiting for finishing taking off
     ROS_INFO("[AerialPlannar] Published takeoff topic.");
     uav_takeoff_flag_ = true;
+    spline_generated_flag_ = false;
+    move_start_flag_ = false;
+    move_topic_recv_flag_ = false;
 
     endposes_server_ = nh_.advertiseService("endposes_server", &AerialPlannar::getEndposes, this);
+    move_start_flag_sub_ = nh_.subscribe<std_msgs::Empty>("/move_start", 1, &AerialPlannar::moveStartCallback, this);
     spline_init_thread_ = boost::thread(boost::bind(&AerialPlannar::splineInitThread, this));
+    plannar_timer_ = nh_.createTimer(ros::Duration(1.0 / controller_freq_), &AerialPlannar::plannarCallback, this);
   }
 
   AerialPlannar::~AerialPlannar(){
@@ -62,7 +68,8 @@ namespace aerial_plannar{
   }
 
   void AerialPlannar::splineInitThread(){
-    spline_ = boost::shared_ptr<BsplineGenerator>(new BsplineGenerator(nh_, nhp_));
+    spline_ = boost::shared_ptr<BsplineGenerator>(new BsplineGenerator(nh_, nhp_, 10.0));
+    spline_generated_flag_ = true;
     ROS_INFO("bspline initalized.");
   }
 
@@ -83,5 +90,35 @@ namespace aerial_plannar{
       for (int i = 0; i < joint_num_; ++i)
         res.end_pose.data.push_back(aerial_controller_->joints_ang_vec_[i]);
     }
+  }
+
+  void AerialPlannar::moveStartCallback(const std_msgs::Empty msg){
+    move_topic_recv_flag_ = true;
+  }
+
+  void AerialPlannar::plannarCallback(const ros::TimerEvent& event){
+    if (move_topic_recv_flag_){
+      move_topic_recv_flag_ = false;
+      move_start_flag_ = true;
+      move_start_time_ = ros::Time::now().toSec();
+    }
+    if (move_start_flag_){
+      double cur_time = ros::Time::now().toSec() - move_start_time_;
+      std::vector<double> des_pos = getDesiredPosition(cur_time);
+      std::vector<double> des_vel = getDesiredVelocity(cur_time);
+      aerial_controller_->ff_controller(des_vel, des_pos);
+    }
+  }
+
+  std::vector<double> AerialPlannar::getDesiredPosition(double time){
+    std::vector<double> des_pos;
+    des_pos = spline_->getPosition(time);
+    return des_pos;
+  }
+
+  std::vector<double> AerialPlannar::getDesiredVelocity(double time){
+    std::vector<double> des_vel;
+    des_vel = spline_->getVelocity(time);
+    return des_vel;
   }
 }

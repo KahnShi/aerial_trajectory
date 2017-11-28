@@ -41,7 +41,7 @@ int main(int argc, char **argv){
   ros::NodeHandle nh;
   ros::NodeHandle nhp("~");
 
-  bspline_generator::BsplineGenerator *spline = new bspline_generator::BsplineGenerator(nh, nhp);
+  bspline_generator::BsplineGenerator *spline = new bspline_generator::BsplineGenerator(nh, nhp, 10.0);
   ROS_INFO("Display finished.");
 
   ros::spin();

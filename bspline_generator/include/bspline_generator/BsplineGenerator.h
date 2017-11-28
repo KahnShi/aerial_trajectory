@@ -49,14 +49,17 @@
 namespace bspline_generator{
   class BsplineGenerator{
   public:
-    BsplineGenerator(ros::NodeHandle nh, ros::NodeHandle nhp);
+    BsplineGenerator(ros::NodeHandle nh, ros::NodeHandle nhp, double period);
     ~BsplineGenerator();
     void manuallySetControlPts();
     void displayBspline();
+    std::vector<double> getPosition(double time);
+    std::vector<double> getVelocity(double time);
 
   private:
     ros::NodeHandle nh_;
     ros::NodeHandle nhp_;
+    double period_;
     boost::shared_ptr<bsplineGenerate> bspline_ptr_;
     bspline_ros::ControlPoints* control_pts_ptr_;
     ros::ServiceClient sampling_plannar_client_;

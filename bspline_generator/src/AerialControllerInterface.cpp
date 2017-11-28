@@ -36,13 +36,13 @@
 #include <bspline_generator/AerialControllerInterface.h>
 
 namespace aerial_controller_interface{
-  AerialControllerInterface::AerialControllerInterface(ros::NodeHandle nh, ros::NodeHandle nhp, int joint_num){
+  AerialControllerInterface::AerialControllerInterface(ros::NodeHandle nh, ros::NodeHandle nhp, int joint_num, double controller_freq){
     nh_ = nh;
     nhp_ = nhp;
     joint_num_ = joint_num;
+    controller_freq_ = controller_freq;
 
-    nhp_.param("controller_freq", controller_freq_, 100.0);
-    nhp_.param("state_dim", state_dim_, 7);
+    state_dim_ = 4 + joint_num_; // x, y, z, yaw, joints
 
     init_param();
 

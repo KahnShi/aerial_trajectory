@@ -70,14 +70,25 @@ namespace aerial_plannar{
 
     int joint_num_;
     bool uav_takeoff_flag_;
-
+    bool spline_generated_flag_;
+    bool move_start_flag_;
+    bool move_topic_recv_flag_;
     boost::thread spline_init_thread_;
+    double controller_freq_;
+    ros::Timer plannar_timer_;
+    double move_start_time_;
 
     boost::shared_ptr<AerialControllerInterface> aerial_controller_;
     boost::shared_ptr<BsplineGenerator> spline_;
 
+    ros::Subscriber move_start_flag_sub_;
+
     bool getEndposes(gap_passing::Endposes::Request &req, gap_passing::Endposes::Response &res);
     void splineInitThread();
+    void moveStartCallback(const std_msgs::Empty msg);
+    void plannarCallback(const ros::TimerEvent& event);
+    std::vector<double> getDesiredPosition(double time);
+    std::vector<double> getDesiredVelocity(double time);
   };
 }
 #endif

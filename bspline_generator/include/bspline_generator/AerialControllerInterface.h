@@ -52,7 +52,7 @@
 namespace aerial_controller_interface{
   class AerialControllerInterface{
   public:
-    AerialControllerInterface(ros::NodeHandle nh, ros::NodeHandle nhp, int joint_num);
+    AerialControllerInterface(ros::NodeHandle nh, ros::NodeHandle nhp, int joint_num, double controller_freq);
     ~AerialControllerInterface();
     void robot_start();
     void takeoff();

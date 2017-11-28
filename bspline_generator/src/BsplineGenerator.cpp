@@ -36,9 +36,10 @@
 #include <bspline_generator/BsplineGenerator.h>
 
 namespace bspline_generator{
-  BsplineGenerator::BsplineGenerator(ros::NodeHandle nh, ros::NodeHandle nhp){
+  BsplineGenerator::BsplineGenerator(ros::NodeHandle nh, ros::NodeHandle nhp, double period){
     nh_ = nh;
     nhp_ = nhp;
+    period_ = period;
     sampling_plannar_client_ = nh_.serviceClient<gap_passing::Keyposes>("keyposes_server");
     bspline_ptr_ = boost::shared_ptr<bsplineGenerate>(new bsplineGenerate(nh_, nhp_, std::string("/path")));
 
@@ -74,8 +75,8 @@ namespace bspline_generator{
       control_pts_ptr_->dim = keyposes_srv.response.dim + 1; // keyposes do not have z axis info
       control_pts_ptr_->degree = 5; // todo
       control_pts_ptr_->is_uniform = true; // todo
-      control_pts_ptr_->start_time = 10.0;
-      control_pts_ptr_->end_time = 20.0;
+      control_pts_ptr_->start_time = 0.0;
+      control_pts_ptr_->end_time = period_;
 
       control_pts_ptr_->control_pts.layout.dim[0].size = control_pts_ptr_->num;
       control_pts_ptr_->control_pts.layout.dim[1].size = control_pts_ptr_->dim;
@@ -141,8 +142,17 @@ namespace bspline_generator{
 
   void BsplineGenerator::displayBspline(){
     bspline_ptr_->bsplineParamInput(control_pts_ptr_);
+    bspline_ptr_->getDerive();
     bspline_ptr_->splinePathDisplay();
     bspline_ptr_->controlPolygonDisplay();
     ROS_INFO("Spline display finished.");
+  }
+
+  std::vector<double> BsplineGenerator::getPosition(double time){
+    return bspline_ptr_->evaluate(time);
+  }
+
+  std::vector<double> BsplineGenerator::getVelocity(double time){
+    return bspline_ptr_->evaluateDerive(time);
   }
 }
