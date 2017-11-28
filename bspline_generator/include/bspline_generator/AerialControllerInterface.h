@@ -50,6 +50,7 @@
 #include <tf/transform_listener.h>
 
 namespace aerial_controller_interface{
+  #define PI 3.1415926
   class AerialControllerInterface{
   public:
     AerialControllerInterface(ros::NodeHandle nh, ros::NodeHandle nhp, int joint_num, double controller_freq);

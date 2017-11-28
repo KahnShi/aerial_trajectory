@@ -80,29 +80,56 @@ namespace aerial_controller_interface{
   }
 
   void AerialControllerInterface::ff_controller(std::vector<double> &ff_term, std::vector<double> &target){
+    tf::Vector3 ff_vel(ff_term[0], ff_term[1], ff_term[2]);
+    tf::Vector3 target_pos(target[0], target[1], target[2]);
+    double target_yaw = target[3];
+    std::vector<double> target_joints;
+    for (int i = 0; i < joint_num_; ++i){
+      target_joints.push_back(target[4 + i]);
+      std::cout << target_joints[i] << ", ";
+    }
 
+    /* pid controller for vel */
+    double p_gain = 1.0;
+    tf::Vector3 vel;
+    vel = ff_vel + p_gain * (target_pos - cog_pos_);
+    std::cout << "\nyaw: " << target_yaw << "\n";
+    std::cout << "ff_vel: " << ff_vel.getX() << ", "
+              << ff_vel.getY() << ", "
+              << ff_vel.getZ() << "\n";
+    std::cout << "target_pos: " << target_pos.getX() << ", "
+              << target_pos.getY() << ", "
+              << target_pos.getZ() << "\n";
+    std::cout << "cog_pos_: " << cog_pos_.getX() << ", "
+              << cog_pos_.getY() << ", "
+              << cog_pos_.getZ() << "\n";
+    std::cout << "vel: " << vel.getX() << ", "
+              << vel.getY() << ", "
+              << vel.getZ() << "\n\n";
 
-    // todo: yaw vel works?
     /* publish uav nav to control */
-    // aerial_robot_base::FlightNav nav_msg;
-    // nav_msg.header.frame_id = std::string("/world");
-    // nav_msg.header.stamp = ros::Time::now();
-    // nav_msg.header.seq = 1;
-    // nav_msg.pos_xy_nav_mode = nav_msg.VEL_MODE;
-    // nav_msg.target_vel_x = 0.0;
-    // nav_msg.target_vel_y = 0.0;
-    // nav_msg.psi_nav_mode = nav_msg.VEL_MODE;
-    // nav_msg.target_psi = 0.0;
-    // flight_nav_pub_.publish(nav_msg);
+    aerial_robot_base::FlightNav nav_msg;
+    nav_msg.header.frame_id = std::string("/world");
+    nav_msg.header.stamp = ros::Time::now();
+    nav_msg.header.seq = 1;
+    nav_msg.control_frame = nav_msg.WORLD_FRAME;
+    nav_msg.target = nav_msg.COG;
+    nav_msg.pos_xy_nav_mode = nav_msg.VEL_MODE;
+    nav_msg.target_vel_x = vel.getX();
+    nav_msg.target_vel_y = vel.getY();
+    // todo: add control in z axis
+    nav_msg.psi_nav_mode = nav_msg.POS_MODE;
+    nav_msg.target_psi = target_yaw;
+    flight_nav_pub_.publish(nav_msg);
+    std::cout << "flight_nav_pub finished\n";
 
-    // todo: joint vel works?
     /* publish joint states */
-    // sensor_msgs::JointState joints_msg;
-    // for (int i = 0; i < 3; ++i){
-    //   joints_msg.position.push_back(des_joint_ang[i]);
-    //   joints_msg.velocity.push_back(des_joint_vel[i]);
-    // }
-    // joints_ctrl_pub_.publish(joints_msg);
+    sensor_msgs::JointState joints_msg;
+    for (int i = 0; i < joint_num_; ++i){
+      joints_msg.position.push_back(target_joints[i]);
+    }
+    joints_ctrl_pub_.publish(joints_msg);
+    std::cout << "joints_pub finished\n";
   }
 
   void AerialControllerInterface::jointStatesCallback(const sensor_msgs::JointStateConstPtr& joints_msg){

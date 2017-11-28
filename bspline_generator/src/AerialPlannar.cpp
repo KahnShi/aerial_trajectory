@@ -82,11 +82,16 @@ namespace aerial_plannar{
       res.start_pose.data.push_back(aerial_controller_->baselink_ang_.getZ());
       for (int i = 0; i < joint_num_; ++i)
         res.start_pose.data.push_back(aerial_controller_->joints_ang_vec_[i]);
+      // to delete
+      std::cout << "getEndposes: ";
+      for (int i = 0; i < 3; ++i)
+        std::cout << res.start_pose.data[i] << ", ";
+      std::cout << "\n\n";
 
       tf::Vector3 target_offset(4.0, 0.0, 0.0);
       res.end_pose.data.push_back(aerial_controller_->baselink_pos_.getX() + target_offset.getX());
       res.end_pose.data.push_back(aerial_controller_->baselink_pos_.getY() + target_offset.getY());
-      res.end_pose.data.push_back(aerial_controller_->baselink_ang_.getZ() + target_offset.getZ());
+      res.end_pose.data.push_back(aerial_controller_->baselink_ang_.getZ());
       for (int i = 0; i < joint_num_; ++i)
         res.end_pose.data.push_back(aerial_controller_->joints_ang_vec_[i]);
     }
@@ -94,6 +99,7 @@ namespace aerial_plannar{
 
   void AerialPlannar::moveStartCallback(const std_msgs::Empty msg){
     move_topic_recv_flag_ = true;
+    ROS_INFO("[AerialPlannar] Receive move start topic.");
   }
 
   void AerialPlannar::plannarCallback(const ros::TimerEvent& event){
@@ -101,6 +107,7 @@ namespace aerial_plannar{
       move_topic_recv_flag_ = false;
       move_start_flag_ = true;
       move_start_time_ = ros::Time::now().toSec();
+      return;
     }
     if (move_start_flag_){
       double cur_time = ros::Time::now().toSec() - move_start_time_;
@@ -113,12 +120,14 @@ namespace aerial_plannar{
   std::vector<double> AerialPlannar::getDesiredPosition(double time){
     std::vector<double> des_pos;
     des_pos = spline_->getPosition(time);
+    std::cout << "get spline position\n";
     return des_pos;
   }
 
   std::vector<double> AerialPlannar::getDesiredVelocity(double time){
     std::vector<double> des_vel;
     des_vel = spline_->getVelocity(time);
+    std::cout << "get spline velocity\n";
     return des_vel;
   }
 }
