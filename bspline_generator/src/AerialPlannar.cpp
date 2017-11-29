@@ -77,9 +77,9 @@ namespace aerial_plannar{
     if (ros::ok && uav_takeoff_flag_){
       res.dim = 6;
       // todo: convert to cog frame
-      res.start_pose.data.push_back(aerial_controller_->baselink_pos_.getX());
-      res.start_pose.data.push_back(aerial_controller_->baselink_pos_.getY());
-      res.start_pose.data.push_back(aerial_controller_->baselink_ang_.getZ());
+      res.start_pose.data.push_back(aerial_controller_->cog_pos_.getX());
+      res.start_pose.data.push_back(aerial_controller_->cog_pos_.getY());
+      res.start_pose.data.push_back(aerial_controller_->cog_ang_.getZ());
       for (int i = 0; i < joint_num_; ++i)
         res.start_pose.data.push_back(aerial_controller_->joints_ang_vec_[i]);
       // to delete
@@ -89,9 +89,9 @@ namespace aerial_plannar{
       std::cout << "\n\n";
 
       tf::Vector3 target_offset(4.0, 0.0, 0.0);
-      res.end_pose.data.push_back(aerial_controller_->baselink_pos_.getX() + target_offset.getX());
-      res.end_pose.data.push_back(aerial_controller_->baselink_pos_.getY() + target_offset.getY());
-      res.end_pose.data.push_back(aerial_controller_->baselink_ang_.getZ());
+      res.end_pose.data.push_back(aerial_controller_->cog_pos_.getX() + target_offset.getX());
+      res.end_pose.data.push_back(aerial_controller_->cog_pos_.getY() + target_offset.getY());
+      res.end_pose.data.push_back(aerial_controller_->cog_ang_.getZ());
       for (int i = 0; i < joint_num_; ++i)
         res.end_pose.data.push_back(aerial_controller_->joints_ang_vec_[i]);
     }
