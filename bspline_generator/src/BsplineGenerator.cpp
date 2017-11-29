@@ -71,7 +71,7 @@ namespace bspline_generator{
       waitForKeyposes();
     }
     else{
-      control_pts_ptr_->num = keyposes_srv.response.states_cnt;
+      control_pts_ptr_->num = keyposes_srv.response.states_cnt + 2;
       control_pts_ptr_->dim = keyposes_srv.response.dim + 1; // keyposes do not have z axis info
       control_pts_ptr_->degree = 5; // todo
       control_pts_ptr_->is_uniform = true; // todo
@@ -85,14 +85,29 @@ namespace bspline_generator{
       control_pts_ptr_->control_pts.layout.data_offset = 0;
 
       control_pts_ptr_->control_pts.data.resize(0);
-      for (int i = 0; i < control_pts_ptr_->num; ++i){
+      // add one more start keypose to guarantee speed 0
+      for (int j = 0; j < 2; ++j) // add x, y axis data
+        control_pts_ptr_->control_pts.data.push_back(keyposes_srv.response.data.data[j]);
+      control_pts_ptr_->control_pts.data.push_back(0.0); // fixed data for z axis
+      for (int j = 2; j < keyposes_srv.response.dim; ++j) // add yaw and joint angles data
+        control_pts_ptr_->control_pts.data.push_back(keyposes_srv.response.data.data[j]);
+
+      for (int i = 0; i < keyposes_srv.response.states_cnt; ++i){
         int index_s = i * keyposes_srv.response.dim;
         for (int j = 0; j < 2; ++j) // add x, y axis data
           control_pts_ptr_->control_pts.data.push_back(keyposes_srv.response.data.data[index_s + j]);
         control_pts_ptr_->control_pts.data.push_back(0.0); // fixed data for z axis
-        for (int j = 2; j < control_pts_ptr_->dim - 1; ++j) // add yaw and joint angles data
+        for (int j = 2; j < keyposes_srv.response.dim; ++j) // add yaw and joint angles data
           control_pts_ptr_->control_pts.data.push_back(keyposes_srv.response.data.data[index_s + j]);
       }
+      // add one more end keypose to guarantee speed 0
+      int index_end = (keyposes_srv.response.states_cnt - 1) * keyposes_srv.response.dim;
+      for (int j = 0; j < 2; ++j) // add x, y axis data
+        control_pts_ptr_->control_pts.data.push_back(keyposes_srv.response.data.data[index_end + j]);
+      control_pts_ptr_->control_pts.data.push_back(0.0); // fixed data for z axis
+      for (int j = 2; j < keyposes_srv.response.dim; ++j) // add yaw and joint angles data
+        control_pts_ptr_->control_pts.data.push_back(keyposes_srv.response.data.data[index_end + j]);
+
       displayBspline();
     }
   }
