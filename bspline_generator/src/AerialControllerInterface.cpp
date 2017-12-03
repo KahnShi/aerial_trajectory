@@ -48,7 +48,7 @@ namespace aerial_controller_interface{
 
     robot_start_pub_ = nh_.advertise<std_msgs::Empty>("/teleop_command/start", 1);
     takeoff_pub_ = nh_.advertise<std_msgs::Empty>("/teleop_command/takeoff", 1);
-    joints_ctrl_pub_ = nh_.advertise<sensor_msgs::JointState>("/hydrusx/joint_states", 1);
+    joints_ctrl_pub_ = nh_.advertise<sensor_msgs::JointState>("/hydrusx/joints_ctrl", 1);
     flight_nav_pub_ = nh_.advertise<aerial_robot_base::FlightNav>("/uav/nav", 1);;
 
     joints_state_sub_ = nh_.subscribe<sensor_msgs::JointState>("/hydrusx/joint_states", 1, &AerialControllerInterface::jointStatesCallback, this);
@@ -86,14 +86,13 @@ namespace aerial_controller_interface{
     std::vector<double> target_joints;
     for (int i = 0; i < joint_num_; ++i){
       target_joints.push_back(target[4 + i]);
-      std::cout << target_joints[i] << ", ";
     }
 
     /* pid controller for vel */
     double p_gain = 1.0;
     tf::Vector3 vel;
     vel = ff_vel + p_gain * (target_pos - cog_pos_);
-    std::cout << "\nyaw: " << target_yaw << "\n";
+    std::cout << "yaw: " << target_yaw << "\n";
     std::cout << "ff_vel: " << ff_vel.getX() << ", "
               << ff_vel.getY() << ", "
               << ff_vel.getZ() << "\n";
@@ -105,7 +104,7 @@ namespace aerial_controller_interface{
               << cog_pos_.getZ() << "\n";
     std::cout << "vel: " << vel.getX() << ", "
               << vel.getY() << ", "
-              << vel.getZ() << "\n\n";
+              << vel.getZ() << "\n";
 
     /* publish uav nav to control */
     aerial_robot_base::FlightNav nav_msg;
@@ -125,11 +124,18 @@ namespace aerial_controller_interface{
 
     /* publish joint states */
     sensor_msgs::JointState joints_msg;
+    joints_msg.header = nav_msg.header;
+    std::cout << "joints: ";
     for (int i = 0; i < joint_num_; ++i){
+      if (target_joints[i] > PI / 2.0){ // todo: inner collision avoidance
+        ROS_ERROR("joint %d angle: %f is larger than PI/2.", i, target_joints[i]);
+        target_joints[i] = PI / 2.0;
+      }
       joints_msg.position.push_back(target_joints[i]);
+      std::cout << joints_msg.position[i] << ", ";
     }
     joints_ctrl_pub_.publish(joints_msg);
-    std::cout << "joints_pub finished\n";
+    std::cout << "\njoints_pub finished\n\n";
   }
 
   void AerialControllerInterface::jointStatesCallback(const sensor_msgs::JointStateConstPtr& joints_msg){
