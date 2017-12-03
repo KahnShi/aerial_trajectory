@@ -85,28 +85,23 @@ namespace bspline_generator{
       control_pts_ptr_->control_pts.layout.data_offset = 0;
 
       control_pts_ptr_->control_pts.data.resize(0);
-      // add one more start keypose to guarantee speed 0
-      for (int j = 0; j < 2; ++j) // add x, y axis data
-        control_pts_ptr_->control_pts.data.push_back(keyposes_srv.response.data.data[j]);
-      control_pts_ptr_->control_pts.data.push_back(0.0); // fixed data for z axis
-      for (int j = 2; j < keyposes_srv.response.dim; ++j) // add yaw and joint angles data
-        control_pts_ptr_->control_pts.data.push_back(keyposes_srv.response.data.data[j]);
 
-      for (int i = 0; i < keyposes_srv.response.states_cnt; ++i){
-        int index_s = i * keyposes_srv.response.dim;
+      for (int i = -1; i < keyposes_srv.response.states_cnt + 1; ++i){
+        // add one more start & end keypose to guarantee speed 0
+        int id = i;
+        if (id < 0)
+          id = 0;
+        else if (id >= keyposes_srv.response.states_cnt)
+          id = keyposes_srv.response.states_cnt - 1;
+        int index_s = id * keyposes_srv.response.dim;
         for (int j = 0; j < 2; ++j) // add x, y axis data
           control_pts_ptr_->control_pts.data.push_back(keyposes_srv.response.data.data[index_s + j]);
         control_pts_ptr_->control_pts.data.push_back(0.0); // fixed data for z axis
-        for (int j = 2; j < keyposes_srv.response.dim; ++j) // add yaw and joint angles data
+        double yaw_ang = getContinousYaw(keyposes_srv.response.data.data[index_s + 2], id);
+        control_pts_ptr_->control_pts.data.push_back(yaw_ang);
+        for (int j = 3; j < keyposes_srv.response.dim; ++j) // add joint angles data
           control_pts_ptr_->control_pts.data.push_back(keyposes_srv.response.data.data[index_s + j]);
       }
-      // add one more end keypose to guarantee speed 0
-      int index_end = (keyposes_srv.response.states_cnt - 1) * keyposes_srv.response.dim;
-      for (int j = 0; j < 2; ++j) // add x, y axis data
-        control_pts_ptr_->control_pts.data.push_back(keyposes_srv.response.data.data[index_end + j]);
-      control_pts_ptr_->control_pts.data.push_back(0.0); // fixed data for z axis
-      for (int j = 2; j < keyposes_srv.response.dim; ++j) // add yaw and joint angles data
-        control_pts_ptr_->control_pts.data.push_back(keyposes_srv.response.data.data[index_end + j]);
 
       displayBspline();
     }
@@ -161,6 +156,40 @@ namespace bspline_generator{
     bspline_ptr_->splinePathDisplay();
     bspline_ptr_->controlPolygonDisplay();
     ROS_INFO("Spline display finished.");
+  }
+
+  double BsplineGenerator::getContinousYaw(double yaw, int id){
+    static double prev_yaw = 0.0;
+    double new_yaw = yaw;
+    if (id == 0){
+      prev_yaw = new_yaw;
+    }
+    else{
+      if (fabs(new_yaw - prev_yaw) > 3.0){ // jumping gap in yaw angle
+        if (new_yaw > prev_yaw){
+          while (fabs(new_yaw - prev_yaw) > 3.0){ // Adjust yaw
+            new_yaw -= 2 * PI;
+            if (new_yaw < prev_yaw - 2 * PI){ // adjust overhead
+              ROS_ERROR("Could not find suitable yaw. previous yaw: %f, current yaw: %f", prev_yaw, yaw);
+              new_yaw += 2 * PI;
+              break;
+            }
+          }
+        }
+        else{
+          while (fabs(new_yaw - prev_yaw) > 3.0){
+            new_yaw += 2 * PI;
+            if (new_yaw > prev_yaw + 2 * PI){
+              ROS_ERROR("Could not find suitable yaw. previous yaw: %f, current yaw: %f", prev_yaw, yaw);
+              new_yaw -= 2 * PI;
+              break;
+            }
+          }
+        }
+      }
+      prev_yaw = new_yaw;
+    }
+    return new_yaw;
   }
 
   std::vector<double> BsplineGenerator::getPosition(double time){

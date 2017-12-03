@@ -47,6 +47,7 @@
 #include <vector>
 
 namespace bspline_generator{
+  #define PI 3.1415926
   class BsplineGenerator{
   public:
     BsplineGenerator(ros::NodeHandle nh, ros::NodeHandle nhp, double period);
@@ -64,7 +65,7 @@ namespace bspline_generator{
     bspline_ros::ControlPoints* control_pts_ptr_;
     ros::ServiceClient sampling_plannar_client_;
     void waitForKeyposes();
-
+    double getContinousYaw(double yaw, int id);
   };
 }
 #endif
