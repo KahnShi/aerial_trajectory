@@ -41,6 +41,12 @@ namespace aerial_plannar{
     nhp_ = nhp;
     joint_num_ = 3;
     controller_freq_ = 100.0;
+    double target_offset_x, target_offset_y;
+    nhp_.param("target_offset_x", target_offset_x, 4.0);
+    nhp_.param("target_offset_y", target_offset_y, 0.0);
+    target_offset_.setValue(target_offset_x, target_offset_y, 0.0);
+
+    desired_state_pub_ = nh_.advertise<std_msgs::Float64MultiArray>("/desired_state", 1);
 
     aerial_controller_ = boost::shared_ptr<AerialControllerInterface>(new AerialControllerInterface(nh_, nhp_, joint_num_, controller_freq_));
 
@@ -68,7 +74,7 @@ namespace aerial_plannar{
   }
 
   void AerialPlannar::splineInitThread(){
-    spline_ = boost::shared_ptr<BsplineGenerator>(new BsplineGenerator(nh_, nhp_, 10.0));
+    spline_ = boost::shared_ptr<BsplineGenerator>(new BsplineGenerator(nh_, nhp_, 50.0));
     spline_generated_flag_ = true;
     ROS_INFO("bspline initalized.");
   }
@@ -77,16 +83,20 @@ namespace aerial_plannar{
     if (ros::ok && uav_takeoff_flag_){
       res.dim = 6;
       // todo: convert to cog frame
-      res.start_pose.data.push_back(aerial_controller_->baselink_pos_.getX());
-      res.start_pose.data.push_back(aerial_controller_->baselink_pos_.getY());
-      res.start_pose.data.push_back(aerial_controller_->baselink_ang_.getZ());
+      res.start_pose.data.push_back(aerial_controller_->cog_pos_.getX());
+      res.start_pose.data.push_back(aerial_controller_->cog_pos_.getY());
+      res.start_pose.data.push_back(aerial_controller_->cog_ang_.getZ());
       for (int i = 0; i < joint_num_; ++i)
         res.start_pose.data.push_back(aerial_controller_->joints_ang_vec_[i]);
+      // to delete
+      std::cout << "getEndposes: ";
+      for (int i = 0; i < 3; ++i)
+        std::cout << res.start_pose.data[i] << ", ";
+      std::cout << "\n\n";
 
-      tf::Vector3 target_offset(4.0, 0.0, 0.0);
-      res.end_pose.data.push_back(aerial_controller_->baselink_pos_.getX() + target_offset.getX());
-      res.end_pose.data.push_back(aerial_controller_->baselink_pos_.getY() + target_offset.getY());
-      res.end_pose.data.push_back(aerial_controller_->baselink_ang_.getZ() + target_offset.getZ());
+      res.end_pose.data.push_back(aerial_controller_->cog_pos_.getX() + target_offset_.getX());
+      res.end_pose.data.push_back(aerial_controller_->cog_pos_.getY() + target_offset_.getY());
+      res.end_pose.data.push_back(aerial_controller_->cog_ang_.getZ());
       for (int i = 0; i < joint_num_; ++i)
         res.end_pose.data.push_back(aerial_controller_->joints_ang_vec_[i]);
     }
@@ -94,6 +104,7 @@ namespace aerial_plannar{
 
   void AerialPlannar::moveStartCallback(const std_msgs::Empty msg){
     move_topic_recv_flag_ = true;
+    ROS_INFO("[AerialPlannar] Receive move start topic.");
   }
 
   void AerialPlannar::plannarCallback(const ros::TimerEvent& event){
@@ -101,11 +112,20 @@ namespace aerial_plannar{
       move_topic_recv_flag_ = false;
       move_start_flag_ = true;
       move_start_time_ = ros::Time::now().toSec();
+      return;
     }
     if (move_start_flag_){
       double cur_time = ros::Time::now().toSec() - move_start_time_;
-      std::vector<double> des_pos = getDesiredPosition(cur_time);
+      std::vector<double> des_pos = getDesiredPosition(cur_time + 1.0 / controller_freq_);
       std::vector<double> des_vel = getDesiredVelocity(cur_time);
+      std_msgs::Float64MultiArray desired_state;
+      for (int i = 0; i < 2; ++i)
+        desired_state.data.push_back(des_pos[i]);
+      // not publish z axis state
+      for (int i = 3; i < des_pos.size(); ++i)
+        desired_state.data.push_back(des_pos[i]);
+      desired_state_pub_.publish(desired_state);
+
       aerial_controller_->ff_controller(des_vel, des_pos);
     }
   }
@@ -113,12 +133,14 @@ namespace aerial_plannar{
   std::vector<double> AerialPlannar::getDesiredPosition(double time){
     std::vector<double> des_pos;
     des_pos = spline_->getPosition(time);
+    std::cout << "get spline position\n";
     return des_pos;
   }
 
   std::vector<double> AerialPlannar::getDesiredVelocity(double time){
     std::vector<double> des_vel;
     des_vel = spline_->getVelocity(time);
+    std::cout << "get spline velocity\n";
     return des_vel;
   }
 }

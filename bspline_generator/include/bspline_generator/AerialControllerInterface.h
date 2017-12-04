@@ -50,6 +50,7 @@
 #include <tf/transform_listener.h>
 
 namespace aerial_controller_interface{
+  #define PI 3.1415926
   class AerialControllerInterface{
   public:
     AerialControllerInterface(ros::NodeHandle nh, ros::NodeHandle nhp, int joint_num, double controller_freq);
@@ -96,6 +97,7 @@ namespace aerial_controller_interface{
     void baselinkOdomCallback(const nav_msgs::OdometryConstPtr& odom_msg);
     void cogOdomCallback(const nav_msgs::OdometryConstPtr& odom_msg);
     void moveStartCallback(const std_msgs::Empty msg);
+    double yawDistance(double target_yaw, double cur_yaw);
   };
 }
 #endif

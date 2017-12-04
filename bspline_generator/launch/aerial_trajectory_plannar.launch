@@ -1,0 +1,6 @@
+<launch>
+  <node pkg="bspline_generator" type="aerial_plannar_node" name="aerial_plannar" output="screen">
+    <param name="target_offset_x" value="4.0" />
+    <param name="target_offset_y" value="0.0" />
+  </node>
+</launch>
