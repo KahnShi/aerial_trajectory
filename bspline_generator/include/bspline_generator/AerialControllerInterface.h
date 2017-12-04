@@ -97,6 +97,7 @@ namespace aerial_controller_interface{
     void baselinkOdomCallback(const nav_msgs::OdometryConstPtr& odom_msg);
     void cogOdomCallback(const nav_msgs::OdometryConstPtr& odom_msg);
     void moveStartCallback(const std_msgs::Empty msg);
+    double yawDistance(double target_yaw, double cur_yaw);
   };
 }
 #endif

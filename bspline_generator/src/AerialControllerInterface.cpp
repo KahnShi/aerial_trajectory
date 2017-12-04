@@ -80,19 +80,21 @@ namespace aerial_controller_interface{
   }
 
   void AerialControllerInterface::ff_controller(std::vector<double> &ff_term, std::vector<double> &target){
+    /* pid controller */
+    double p_gain = 1.0;
     tf::Vector3 ff_vel(ff_term[0], ff_term[1], ff_term[2]);
     tf::Vector3 target_pos(target[0], target[1], target[2]);
-    double target_yaw = target[3];
-    std::vector<double> target_joints;
-    for (int i = 0; i < joint_num_; ++i){
-      target_joints.push_back(target[4 + i]);
-    }
-
-    /* pid controller for vel */
-    double p_gain = 1.0;
     tf::Vector3 vel;
     vel = ff_vel + p_gain * (target_pos - cog_pos_);
-    std::cout << "yaw: " << target_yaw << "\n";
+
+    double target_yaw = target[3] + p_gain * yawDistance(target[3], cog_ang_[2]);
+    std::vector<double> target_joints;
+    for (int i = 0; i < joint_num_; ++i){
+      target_joints.push_back(target[4 + i]
+                              + p_gain * (target[4 + i] - joints_ang_vec_[i]));
+    }
+
+    std::cout << "target yaw: " << target[3] << ", cur yaw: " << cog_ang_[2] << "\n";
     std::cout << "ff_vel: " << ff_vel.getX() << ", "
               << ff_vel.getY() << ", "
               << ff_vel.getZ() << "\n";
@@ -191,5 +193,31 @@ namespace aerial_controller_interface{
 
   void AerialControllerInterface::moveStartCallback(const std_msgs::Empty msg){
     move_start_flag_ = true;
+  }
+
+  double AerialControllerInterface::yawDistance(double target_yaw, double cur_yaw){
+    if (fabs(cur_yaw - target_yaw) > 3.0){ // jumping gap in yaw angle
+      if (cur_yaw > target_yaw){
+        while (fabs(cur_yaw - target_yaw) > 3.0){ // Adjust yaw
+          cur_yaw -= 2 * PI;
+          if (cur_yaw < target_yaw - 2 * PI){ // adjust overhead
+            ROS_ERROR("Could not find yaw distance. target yaw: %f, current yaw: %f", target_yaw, cur_yaw);
+            cur_yaw += 2 * PI;
+            break;
+          }
+        }
+      }
+      else{
+        while (fabs(cur_yaw - target_yaw) > 3.0){
+          cur_yaw += 2 * PI;
+          if (cur_yaw > target_yaw + 2 * PI){
+            ROS_ERROR("Could not find yaw distance. previous yaw: %f, current yaw: %f", target_yaw, cur_yaw);
+            cur_yaw -= 2 * PI;
+            break;
+          }
+        }
+      }
+    }
+    return target_yaw - cur_yaw;
   }
 }
