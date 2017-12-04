@@ -79,6 +79,7 @@ namespace aerial_plannar{
     double controller_freq_;
     ros::Timer plannar_timer_;
     double move_start_time_;
+    tf::Vector3 target_offset_;
 
     boost::shared_ptr<AerialControllerInterface> aerial_controller_;
     boost::shared_ptr<BsplineGenerator> spline_;
