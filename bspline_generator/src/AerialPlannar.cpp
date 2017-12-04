@@ -113,7 +113,7 @@ namespace aerial_plannar{
     }
     if (move_start_flag_){
       double cur_time = ros::Time::now().toSec() - move_start_time_;
-      std::vector<double> des_pos = getDesiredPosition(cur_time);
+      std::vector<double> des_pos = getDesiredPosition(cur_time + 1.0 / controller_freq_);
       std::vector<double> des_vel = getDesiredVelocity(cur_time);
       std_msgs::Float64MultiArray desired_state;
       for (int i = 0; i < 2; ++i)
