@@ -39,6 +39,7 @@
 /* ros */
 #include <ros/ros.h>
 #include <gap_passing/Endposes.h>
+#include <std_msgs/Float64MultiArray.h>
 
 /* utils */
 #include <iostream>
@@ -67,6 +68,7 @@ namespace aerial_plannar{
     ros::ServiceServer endposes_server_;
     std::vector<double> start_pose_;
     std::vector<double> end_pose_;
+    ros::Publisher desired_state_pub_;
 
     int joint_num_;
     bool uav_takeoff_flag_;

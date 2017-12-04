@@ -42,6 +42,8 @@ namespace aerial_plannar{
     joint_num_ = 3;
     controller_freq_ = 100.0;
 
+    desired_state_pub_ = nh_.advertise<std_msgs::Float64MultiArray>("/desired_state", 1);
+
     aerial_controller_ = boost::shared_ptr<AerialControllerInterface>(new AerialControllerInterface(nh_, nhp_, joint_num_, controller_freq_));
 
     uav_takeoff_flag_ = false;
@@ -68,7 +70,7 @@ namespace aerial_plannar{
   }
 
   void AerialPlannar::splineInitThread(){
-    spline_ = boost::shared_ptr<BsplineGenerator>(new BsplineGenerator(nh_, nhp_, 10.0));
+    spline_ = boost::shared_ptr<BsplineGenerator>(new BsplineGenerator(nh_, nhp_, 50.0));
     spline_generated_flag_ = true;
     ROS_INFO("bspline initalized.");
   }
@@ -113,6 +115,14 @@ namespace aerial_plannar{
       double cur_time = ros::Time::now().toSec() - move_start_time_;
       std::vector<double> des_pos = getDesiredPosition(cur_time);
       std::vector<double> des_vel = getDesiredVelocity(cur_time);
+      std_msgs::Float64MultiArray desired_state;
+      for (int i = 0; i < 2; ++i)
+        desired_state.data.push_back(des_pos[i]);
+      // not publish z axis state
+      for (int i = 3; i < des_pos.size(); ++i)
+        desired_state.data.push_back(des_pos[i]);
+      desired_state_pub_.publish(desired_state);
+
       aerial_controller_->ff_controller(des_vel, des_pos);
     }
   }
