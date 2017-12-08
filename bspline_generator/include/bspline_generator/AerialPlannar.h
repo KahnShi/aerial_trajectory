@@ -87,10 +87,12 @@ namespace aerial_plannar{
     boost::shared_ptr<AerialControllerInterface> aerial_controller_;
     boost::shared_ptr<BsplineGenerator> spline_;
 
+    ros::Subscriber inquiry_robot_state_sub_;
     ros::Subscriber move_start_flag_sub_;
 
     bool getEndposes(gap_passing::Endposes::Request &req, gap_passing::Endposes::Response &res);
     void splineInitThread();
+    void inquiryRobotStateCallback(const std_msgs::Empty msg);
     void moveStartCallback(const std_msgs::Empty msg);
     void plannarCallback(const ros::TimerEvent& event);
     std::vector<double> getDesiredPosition(double time);

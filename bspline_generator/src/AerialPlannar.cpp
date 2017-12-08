@@ -71,6 +71,7 @@ namespace aerial_plannar{
     move_topic_recv_flag_ = false;
 
     endposes_server_ = nh_.advertiseService("endposes_server", &AerialPlannar::getEndposes, this);
+    inquiry_robot_state_sub_ = nh_.subscribe<std_msgs::Empty>("/robot_state_inquiry", 1, &AerialPlannar::inquiryRobotStateCallback, this);
     move_start_flag_sub_ = nh_.subscribe<std_msgs::Empty>("/move_start", 1, &AerialPlannar::moveStartCallback, this);
     spline_init_thread_ = boost::thread(boost::bind(&AerialPlannar::splineInitThread, this));
     plannar_timer_ = nh_.createTimer(ros::Duration(1.0 / controller_freq_), &AerialPlannar::plannarCallback, this);
@@ -102,6 +103,18 @@ namespace aerial_plannar{
       for (int i = 0; i < joint_num_; ++i)
         res.end_pose.data.push_back(aerial_controller_->joints_ang_vec_[i]);
     }
+  }
+
+  void AerialPlannar::inquiryRobotStateCallback(const std_msgs::Empty msg){
+    std::cout << "[AerialPlannar] Robot current state: ";
+    std::cout << aerial_controller_->cog_pos_.getX() << ", "
+              << aerial_controller_->cog_pos_.getY() << ", "
+              << aerial_controller_->cog_pos_.getZ() << ", "
+              << aerial_controller_->cog_ang_.getZ() << ", ";
+    std::cout << "\n[AerialPlannar] Robot current joints: ";
+    for (int i = 0; i < joint_num_; ++i)
+      std::cout << aerial_controller_->joints_ang_vec_[i] << ", ";
+    std::cout << "\n\n";
   }
 
   void AerialPlannar::moveStartCallback(const std_msgs::Empty msg){
