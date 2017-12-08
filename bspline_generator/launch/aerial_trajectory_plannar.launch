@@ -1,6 +1,10 @@
 <launch>
+  <arg name="real_machine" default="false" />
+  <arg name="auto_takeoff" default="false" />
+
   <node pkg="bspline_generator" type="aerial_plannar_node" name="aerial_plannar" output="screen">
-    <param name="target_offset_x" value="4.0" />
-    <param name="target_offset_y" value="0.0" />
+    <param name="real_machine" value="$(arg real_machine)" />
+    <param name="target_offset_x" value="3.0" />
+    <param name="target_offset_y" value="-1.0" />
   </node>
 </launch>

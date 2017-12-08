@@ -70,6 +70,9 @@ namespace aerial_plannar{
     std::vector<double> end_pose_;
     ros::Publisher desired_state_pub_;
 
+    bool real_machine_flag_;
+    bool auto_takeoff_flag_;
+
     int joint_num_;
     bool uav_takeoff_flag_;
     bool spline_generated_flag_;

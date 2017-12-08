@@ -42,6 +42,8 @@ namespace aerial_plannar{
     joint_num_ = 3;
     controller_freq_ = 100.0;
     double target_offset_x, target_offset_y;
+    nhp_.param("real_machine", real_machine_flag_, false);
+    nhp_.param("auto_takeoff_machine", auto_takeoff_flag_, false);
     nhp_.param("target_offset_x", target_offset_x, 4.0);
     nhp_.param("target_offset_y", target_offset_y, 0.0);
     target_offset_.setValue(target_offset_x, target_offset_y, 0.0);
@@ -51,12 +53,18 @@ namespace aerial_plannar{
     aerial_controller_ = boost::shared_ptr<AerialControllerInterface>(new AerialControllerInterface(nh_, nhp_, joint_num_, controller_freq_));
 
     uav_takeoff_flag_ = false;
-    aerial_controller_->robot_start();
-    ROS_INFO("[AerialPlannar] Published robot start topic.");
-    sleep(2.5);
-    aerial_controller_->takeoff();
-    sleep(18.0); // waiting for finishing taking off
-    ROS_INFO("[AerialPlannar] Published takeoff topic.");
+
+    sleep(1.0);
+
+    if (auto_takeoff_flag_){
+      aerial_controller_->robot_start();
+      ROS_INFO("[AerialPlannar] Published robot start topic.");
+      sleep(2.5);
+      aerial_controller_->takeoff();
+      sleep(18.0); // waiting for finishing taking off
+      ROS_INFO("[AerialPlannar] Published takeoff topic.");
+    }
+
     uav_takeoff_flag_ = true;
     spline_generated_flag_ = false;
     move_start_flag_ = false;
