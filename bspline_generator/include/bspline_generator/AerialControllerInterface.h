@@ -80,6 +80,7 @@ namespace aerial_controller_interface{
     nav_msgs::Odometry baselink_odom_;
     nav_msgs::Odometry cog_odom_;
 
+    bool debug_;
     bool move_start_flag_;
 
     ros::Publisher robot_start_pub_;

@@ -141,14 +141,12 @@ namespace aerial_plannar{
   std::vector<double> AerialPlannar::getDesiredPosition(double time){
     std::vector<double> des_pos;
     des_pos = spline_->getPosition(time);
-    std::cout << "get spline position\n";
     return des_pos;
   }
 
   std::vector<double> AerialPlannar::getDesiredVelocity(double time){
     std::vector<double> des_vel;
     des_vel = spline_->getVelocity(time);
-    std::cout << "get spline velocity\n";
     return des_vel;
   }
 }

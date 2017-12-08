@@ -6,5 +6,6 @@
     <param name="real_machine" value="$(arg real_machine)" />
     <param name="target_offset_x" value="3.0" />
     <param name="target_offset_y" value="-1.0" />
+    <param name="debug_output" value="false" />
   </node>
 </launch>
