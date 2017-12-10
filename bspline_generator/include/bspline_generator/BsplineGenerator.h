@@ -56,6 +56,7 @@ namespace bspline_generator{
     void displayBspline();
     std::vector<double> getPosition(double time);
     std::vector<double> getVelocity(double time);
+    std::vector<double> getKeypose(int id);
 
   private:
     ros::NodeHandle nh_;

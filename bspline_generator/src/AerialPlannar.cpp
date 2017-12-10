@@ -73,6 +73,8 @@ namespace aerial_plannar{
     endposes_server_ = nh_.advertiseService("endposes_server", &AerialPlannar::getEndposes, this);
     inquiry_robot_state_sub_ = nh_.subscribe<std_msgs::Empty>("/robot_state_inquiry", 1, &AerialPlannar::inquiryRobotStateCallback, this);
     move_start_flag_sub_ = nh_.subscribe<std_msgs::Empty>("/move_start", 1, &AerialPlannar::moveStartCallback, this);
+    adjust_initial_state_sub_ = nh_.subscribe<std_msgs::Empty>("/adjust_robot_initial_state", 1, &AerialPlannar::adjustInitalStateCallback, this);
+
     spline_init_thread_ = boost::thread(boost::bind(&AerialPlannar::splineInitThread, this));
     plannar_timer_ = nh_.createTimer(ros::Duration(1.0 / controller_freq_), &AerialPlannar::plannarCallback, this);
   }
@@ -115,6 +117,11 @@ namespace aerial_plannar{
     for (int i = 0; i < joint_num_; ++i)
       std::cout << aerial_controller_->joints_ang_vec_[i] << ", ";
     std::cout << "\n\n";
+  }
+
+  void AerialPlannar::adjustInitalStateCallback(const std_msgs::Empty msg){
+    std::vector<double> inital_state = spline_->getKeypose(0);
+    aerial_controller_->moveToInitialState(inital_state);
   }
 
   void AerialPlannar::moveStartCallback(const std_msgs::Empty msg){

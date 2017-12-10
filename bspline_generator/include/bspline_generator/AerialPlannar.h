@@ -89,10 +89,12 @@ namespace aerial_plannar{
 
     ros::Subscriber inquiry_robot_state_sub_;
     ros::Subscriber move_start_flag_sub_;
+    ros::Subscriber adjust_initial_state_sub_;
 
     bool getEndposes(gap_passing::Endposes::Request &req, gap_passing::Endposes::Response &res);
     void splineInitThread();
     void inquiryRobotStateCallback(const std_msgs::Empty msg);
+    void adjustInitalStateCallback(const std_msgs::Empty msg);
     void moveStartCallback(const std_msgs::Empty msg);
     void plannarCallback(const ros::TimerEvent& event);
     std::vector<double> getDesiredPosition(double time);

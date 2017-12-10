@@ -58,6 +58,7 @@ namespace aerial_controller_interface{
     void robot_start();
     void takeoff();
     void ff_controller(std::vector<double> &ff_term, std::vector<double> &target);
+    void moveToInitialState(std::vector<double> initial_state);
 
     tf::Vector3 baselink_pos_;
     tf::Vector3 baselink_vel_;
