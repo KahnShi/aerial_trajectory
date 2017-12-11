@@ -226,4 +226,30 @@ namespace aerial_controller_interface{
     }
     return target_yaw - cur_yaw;
   }
+
+  void AerialControllerInterface::moveToInitialState(std::vector<double> initial_state){
+    // intial state containing z axis
+    /* publish uav nav */
+    aerial_robot_base::FlightNav nav_msg;
+    nav_msg.header.frame_id = std::string("/world");
+    nav_msg.header.stamp = ros::Time::now();
+    nav_msg.header.seq = 1;
+    nav_msg.control_frame = nav_msg.WORLD_FRAME;
+    nav_msg.target = nav_msg.COG;
+    nav_msg.pos_xy_nav_mode = nav_msg.POS_MODE;
+    nav_msg.target_pos_x = initial_state[0];
+    nav_msg.target_pos_y = initial_state[1];
+    // todo: add control in z axis
+    nav_msg.psi_nav_mode = nav_msg.POS_MODE;
+    nav_msg.target_psi = initial_state[3];
+    flight_nav_pub_.publish(nav_msg);
+
+    /* publish joint states */
+    sensor_msgs::JointState joints_msg;
+    joints_msg.header = nav_msg.header;
+    for (int i = 0; i < joint_num_; ++i){
+      joints_msg.position.push_back(initial_state[4 + i]);
+    }
+    joints_ctrl_pub_.publish(joints_msg);
+  }
 }

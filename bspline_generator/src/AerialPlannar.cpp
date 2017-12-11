@@ -42,10 +42,15 @@ namespace aerial_plannar{
     joint_num_ = 3;
     controller_freq_ = 100.0;
     double target_offset_x, target_offset_y;
+    start_pose_.resize(3); end_pose_.resize(3);
     nhp_.param("real_machine", real_machine_flag_, false);
     nhp_.param("auto_takeoff_machine", auto_takeoff_flag_, false);
+    nhp_.param("manual_start_state", manual_start_state_flag_, true);
     nhp_.param("target_offset_x", target_offset_x, 4.0);
     nhp_.param("target_offset_y", target_offset_y, 0.0);
+    nhp_.param("start_x", start_pose_[0], 0.0);
+    nhp_.param("start_y", start_pose_[1], 0.0);
+    nhp_.param("start_yaw", start_pose_[2], 0.0);
     target_offset_.setValue(target_offset_x, target_offset_y, 0.0);
 
     desired_state_pub_ = nh_.advertise<std_msgs::Float64MultiArray>("/desired_state", 1);
@@ -73,6 +78,8 @@ namespace aerial_plannar{
     endposes_server_ = nh_.advertiseService("endposes_server", &AerialPlannar::getEndposes, this);
     inquiry_robot_state_sub_ = nh_.subscribe<std_msgs::Empty>("/robot_state_inquiry", 1, &AerialPlannar::inquiryRobotStateCallback, this);
     move_start_flag_sub_ = nh_.subscribe<std_msgs::Empty>("/move_start", 1, &AerialPlannar::moveStartCallback, this);
+    adjust_initial_state_sub_ = nh_.subscribe<std_msgs::Empty>("/adjust_robot_initial_state", 1, &AerialPlannar::adjustInitalStateCallback, this);
+
     spline_init_thread_ = boost::thread(boost::bind(&AerialPlannar::splineInitThread, this));
     plannar_timer_ = nh_.createTimer(ros::Duration(1.0 / controller_freq_), &AerialPlannar::plannarCallback, this);
   }
@@ -91,15 +98,21 @@ namespace aerial_plannar{
   bool AerialPlannar::getEndposes(gap_passing::Endposes::Request &req, gap_passing::Endposes::Response &res){
     if (ros::ok && uav_takeoff_flag_){
       res.dim = 6;
-      res.start_pose.data.push_back(aerial_controller_->cog_pos_.getX());
-      res.start_pose.data.push_back(aerial_controller_->cog_pos_.getY());
-      res.start_pose.data.push_back(aerial_controller_->cog_ang_.getZ());
+      if (!manual_start_state_flag_){
+        start_pose_[0] = aerial_controller_->cog_pos_.getX();
+        start_pose_[1] = aerial_controller_->cog_pos_.getY();
+        start_pose_[2] = aerial_controller_->cog_ang_.getZ();
+      }
+      for (int i = 0; i < 3; ++i)
+        res.start_pose.data.push_back(start_pose_[i]);
       for (int i = 0; i < joint_num_; ++i)
         res.start_pose.data.push_back(aerial_controller_->joints_ang_vec_[i]);
 
-      res.end_pose.data.push_back(aerial_controller_->cog_pos_.getX() + target_offset_.getX());
-      res.end_pose.data.push_back(aerial_controller_->cog_pos_.getY() + target_offset_.getY());
-      res.end_pose.data.push_back(aerial_controller_->cog_ang_.getZ());
+      end_pose_[0] = start_pose_[0] + target_offset_.getX();
+      end_pose_[1] = start_pose_[1] + target_offset_.getY();
+      end_pose_[2] = start_pose_[2];
+      for (int i = 0; i < 3; ++i)
+        res.end_pose.data.push_back(end_pose_[i]);
       for (int i = 0; i < joint_num_; ++i)
         res.end_pose.data.push_back(aerial_controller_->joints_ang_vec_[i]);
     }
@@ -115,6 +128,11 @@ namespace aerial_plannar{
     for (int i = 0; i < joint_num_; ++i)
       std::cout << aerial_controller_->joints_ang_vec_[i] << ", ";
     std::cout << "\n\n";
+  }
+
+  void AerialPlannar::adjustInitalStateCallback(const std_msgs::Empty msg){
+    std::vector<double> inital_state = spline_->getKeypose(0);
+    aerial_controller_->moveToInitialState(inital_state);
   }
 
   void AerialPlannar::moveStartCallback(const std_msgs::Empty msg){

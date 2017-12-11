@@ -200,4 +200,21 @@ namespace bspline_generator{
   std::vector<double> BsplineGenerator::getVelocity(double time){
     return bspline_ptr_->evaluateDerive(time);
   }
+
+  std::vector<double> BsplineGenerator::getKeypose(int id){
+    std::vector<double> keypose;
+    int start_index = id * control_pts_ptr_->dim;
+    if (start_index < 0){
+      ROS_ERROR("[BsplineGenerator] visited keypose id%d is less than 0.", id);
+      start_index = 0;
+    }
+    else if (start_index > control_pts_ptr_->control_pts.data.size() - control_pts_ptr_->dim){
+      ROS_ERROR("[BsplineGenerator] visited keypose id%d is larger than bound.", id);
+      start_index = control_pts_ptr_->control_pts.data.size() - control_pts_ptr_->dim;
+    }
+    for (int i = 0; i < control_pts_ptr_->dim; ++i)
+      keypose.push_back(control_pts_ptr_->control_pts.data[start_index + i]);
+
+    return keypose;
+  }
 }
