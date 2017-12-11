@@ -4,8 +4,14 @@
 
   <node pkg="bspline_generator" type="aerial_plannar_node" name="aerial_plannar" output="screen">
     <param name="real_machine" value="$(arg real_machine)" />
-    <param name="target_offset_x" value="3.0" />
-    <param name="target_offset_y" value="-1.0" />
     <param name="debug_output" value="false" />
+
+    <param name="target_offset_x" value="1.2" />
+    <param name="target_offset_y" value="0.0" />
+
+    <param name="manual_start_state" value="true" />
+    <param name="start_x" value="-1.4" />
+    <param name="start_y" value="0.17" />
+    <param name="start_yaw" value="-1.57" />
   </node>
 </launch>

@@ -72,6 +72,7 @@ namespace aerial_plannar{
 
     bool real_machine_flag_;
     bool auto_takeoff_flag_;
+    bool manual_start_state_flag_;
 
     int joint_num_;
     bool uav_takeoff_flag_;
