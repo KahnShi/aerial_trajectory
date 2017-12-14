@@ -147,10 +147,10 @@ namespace aerial_controller_interface{
   }
 
   void AerialControllerInterface::jointStatesCallback(const sensor_msgs::JointStateConstPtr& joints_msg){
-    for (int i = 0; i < joints_msg->position.size(); ++i){
+    for (int i = 0; i < joints_msg->position.size(); ++i)
       joints_ang_vec_[i] = joints_msg->position[i];
+    for (int i = 0; i < joints_msg->velocity.size(); ++i)
       joints_vel_vec_[i] = joints_msg->velocity[i];
-    }
   }
 
   void AerialControllerInterface::baselinkOdomCallback(const nav_msgs::OdometryConstPtr& odom_msg){
