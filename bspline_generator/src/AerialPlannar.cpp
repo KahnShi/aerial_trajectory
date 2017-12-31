@@ -54,6 +54,7 @@ namespace aerial_plannar{
     target_offset_.setValue(target_offset_x, target_offset_y, 0.0);
 
     desired_state_pub_ = nh_.advertise<std_msgs::Float64MultiArray>("/desired_state", 1);
+    control_time_stamp_pub_ = nh_.advertise<std_msgs::Float64>("/control_time_stamp", 1);
 
     aerial_controller_ = boost::shared_ptr<AerialControllerInterface>(new AerialControllerInterface(nh_, nhp_, joint_num_, controller_freq_));
 
@@ -158,6 +159,11 @@ namespace aerial_plannar{
       for (int i = 3; i < des_pos.size(); ++i)
         desired_state.data.push_back(des_pos[i]);
       desired_state_pub_.publish(desired_state);
+
+      // publish control time stamp
+      std_msgs::Float64 time_stamp;
+      time_stamp.data = cur_time;
+      control_time_stamp_pub_.publish(time_stamp);
 
       aerial_controller_->ff_controller(des_vel, des_pos);
     }

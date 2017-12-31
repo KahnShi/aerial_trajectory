@@ -39,6 +39,7 @@
 /* ros */
 #include <ros/ros.h>
 #include <gap_passing/Endposes.h>
+#include <std_msgs/Float64.h>
 #include <std_msgs/Float64MultiArray.h>
 
 /* utils */
@@ -69,6 +70,7 @@ namespace aerial_plannar{
     std::vector<double> start_pose_;
     std::vector<double> end_pose_;
     ros::Publisher desired_state_pub_;
+    ros::Publisher control_time_stamp_pub_;
 
     bool real_machine_flag_;
     bool auto_takeoff_flag_;
