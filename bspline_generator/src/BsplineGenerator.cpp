@@ -41,10 +41,10 @@ namespace bspline_generator{
     nhp_ = nhp;
     period_ = period;
     sampling_plannar_client_ = nh_.serviceClient<gap_passing::Keyposes>("keyposes_server");
-    bspline_ptr_ = boost::shared_ptr<bsplineGenerate>(new bsplineGenerate(nh_, nhp_, std::string("/path"),
-                                                                          std::string("/nav"))); // Hydrus odometry frame id is /nav
+    bspline_ptr_ = boost::shared_ptr<TinysplineInterface>(new TinysplineInterface(nh_, nhp_, std::string("/path"),
+                                                                                  std::string("/nav"))); // Hydrus odometry frame id is /nav
 
-    control_pts_ptr_ = new bspline_ros::ControlPoints();
+    control_pts_ptr_ = new ControlPoints();
     control_pts_ptr_->control_pts.layout.dim.push_back(std_msgs::MultiArrayDimension());
     control_pts_ptr_->control_pts.layout.dim.push_back(std_msgs::MultiArrayDimension());
     control_pts_ptr_->control_pts.layout.dim[0].label = "height";

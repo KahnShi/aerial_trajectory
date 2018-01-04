@@ -13,18 +13,27 @@ set(PACKAGE_DEPENDENCIES
   std_msgs
   nav_msgs
   sensor_msgs
-  bspline_ros
   tf
   gap_passing
   hydrus
   aerial_robot_base
+  message_generation
 )
 
 find_package(catkin REQUIRED COMPONENTS ${PACKAGE_DEPENDENCIES})
 
+add_message_files(FILES ControlPoints.msg)
+generate_messages(DEPENDENCIES std_msgs)
+
+include(cmake/DownloadTinyspline.cmake)
+tinyspline_build(TINYSPLINE_LIBS TINYSPLINE_INCLUDE_DIR)
+
+add_definitions("${TINYSPLINE_DEFINITIONS}")
+
+
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES bspline_generator
+  INCLUDE_DIRS include ${TINYSPLINE_INCLUDE_DIR}
+  LIBRARIES bspline_generator ${TINYSPLINE_LIBS}
   CATKIN_DEPENDS ${PACKAGE_DEPENDENCIES}
   #DEPENDS system_lib
 )
@@ -38,12 +47,17 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${TINYSPLINE_INCLUDE_DIR}
 )
 
 ## Declare a C++ library
+add_library(TinysplineInterface src/TinysplineInterface.cpp)
+add_dependencies(TinysplineInterface ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(TinysplineInterface ${catkin_LIBRARIES} ${TINYSPLINE_LIBS})
+
 add_library(BsplineGenerator src/BsplineGenerator.cpp)
 add_dependencies(BsplineGenerator ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(BsplineGenerator ${catkin_LIBRARIES})
+target_link_libraries(BsplineGenerator ${catkin_LIBRARIES} TinysplineInterface)
 
 add_library(AerialPlannar src/AerialPlannar.cpp)
 add_dependencies(AerialPlannar ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

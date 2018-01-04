@@ -33,42 +33,58 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#ifndef BSPLINE_GENERATOR_H_
-#define BSPLINE_GENERATOR_H_
-
-/* ros */
-#include <ros/ros.h>
-#include <bspline_generator/TinysplineInterface.h>
-#include <std_msgs/MultiArrayDimension.h>
-#include <gap_passing/Keyposes.h>
-
-/* utils */
+#ifndef BSPLINE_GENERATE_H_
+#define BSPLINE_GENERATE_H_
 #include <iostream>
-#include <vector>
+/*we need set the following flag to disable c++11 for linking the tinyspline */
+#define TINYSPLINE_DISABLE_CXX11_FEATURES
+#include <tinysplinecpp.h>
+#include <ros/ros.h>
+#include <geometry_msgs/Point.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <nav_msgs/Path.h>
+#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <bspline_generator/ControlPoints.h>
 
-using namespace tinyspline_interface;
-
-namespace bspline_generator{
-  #define PI 3.1415926
-  class BsplineGenerator{
+namespace tinyspline_interface{
+  class TinysplineInterface
+  {
   public:
-    BsplineGenerator(ros::NodeHandle nh, ros::NodeHandle nhp, double period);
-    ~BsplineGenerator();
-    void manuallySetControlPts();
-    void displayBspline();
-    std::vector<double> getPosition(double time);
-    std::vector<double> getVelocity(double time);
-    std::vector<double> getKeypose(int id);
+    tinyspline::BSpline* spline_ptr_;
+    tinyspline::BSpline spline_derive_;
+    std::vector<tinyspline::rational> controlpts_;
+    std::vector<tinyspline::rational> knotpts_;
+    int controlpts_num_;
+    int knots_num_;
+    int deg_;
+    int dim_;
+    bool is_uniform_;
+    float time_start_;
+    float time_end_;
+    bool polygon_display_flag_;
+    bool debug_;
+    std::string path_frame_id_;
 
-  private:
     ros::NodeHandle nh_;
     ros::NodeHandle nhp_;
-    double period_;
-    boost::shared_ptr<TinysplineInterface> bspline_ptr_;
-    ControlPoints* control_pts_ptr_;
-    ros::ServiceClient sampling_plannar_client_;
-    void waitForKeyposes();
-    double getContinousYaw(double yaw, int id);
+
+    ros::Publisher pub_spline_path_;
+    ros::Publisher pub_reconstructed_path_markers_;
+
+    TinysplineInterface(ros::NodeHandle nh, ros::NodeHandle nhp, std::string spline_path_pub_topic_name = std::string("/spline_path"),
+                        std::string path_frame = std::string("/world"));
+    void pathGridPointsCallback(const bspline_generator::ControlPointsConstPtr& msg);
+    void splinePathDisplay();
+    void bsplineParamInput(bspline_generator::ControlPoints* msg);
+    void getDerive();
+    std::vector<double> evaluate(double t);
+    std::vector<double> evaluateDerive(double t);
+    void controlPolygonDisplay();
+    void controlPolygonDisplayInterface(int mode = 1);
+    void arrayConvertToPoint(int id, geometry_msgs::Point& point);
   };
 }
 #endif
