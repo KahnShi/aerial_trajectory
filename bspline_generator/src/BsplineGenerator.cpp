@@ -73,7 +73,7 @@ namespace bspline_generator{
     }
     else{
       control_pts_ptr_->num = keyposes_srv.response.states_cnt + 2;
-      control_pts_ptr_->dim = keyposes_srv.response.dim + 1; // keyposes do not have z axis info
+      control_pts_ptr_->dim = keyposes_srv.response.dim;
       control_pts_ptr_->degree = 5; // todo
       control_pts_ptr_->is_uniform = true; // todo
       control_pts_ptr_->start_time = 0.0;
@@ -95,12 +95,7 @@ namespace bspline_generator{
         else if (id >= keyposes_srv.response.states_cnt)
           id = keyposes_srv.response.states_cnt - 1;
         int index_s = id * keyposes_srv.response.dim;
-        for (int j = 0; j < 2; ++j) // add x, y axis data
-          control_pts_ptr_->control_pts.data.push_back(keyposes_srv.response.data.data[index_s + j]);
-        control_pts_ptr_->control_pts.data.push_back(0.0); // fixed data for z axis
-        double yaw_ang = getContinousYaw(keyposes_srv.response.data.data[index_s + 2], id);
-        control_pts_ptr_->control_pts.data.push_back(yaw_ang);
-        for (int j = 3; j < keyposes_srv.response.dim; ++j) // add joint angles data
+        for (int j = 0; j < keyposes_srv.response.dim; ++j)
           control_pts_ptr_->control_pts.data.push_back(keyposes_srv.response.data.data[index_s + j]);
       }
 
