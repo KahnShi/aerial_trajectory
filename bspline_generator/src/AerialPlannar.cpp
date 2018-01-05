@@ -40,10 +40,12 @@ namespace aerial_plannar{
     nh_ = nh;
     nhp_ = nhp;
     joint_num_ = 3;
-    controller_freq_ = 100.0;
     double target_offset_x, target_offset_y;
     start_pose_.resize(3); end_pose_.resize(3);
     nhp_.param("real_machine", real_machine_flag_, false);
+    nhp_.param("control_frequency", controller_freq_, 100.0);
+    nhp_.param("trajectory_period", trajectory_period_, 50.0);
+    nhp_.param("bspline_degree", bspline_degree_, 5);
     nhp_.param("auto_takeoff_machine", auto_takeoff_flag_, false);
     nhp_.param("manual_start_state", manual_start_state_flag_, true);
     nhp_.param("target_offset_x", target_offset_x, 4.0);
@@ -90,7 +92,7 @@ namespace aerial_plannar{
   }
 
   void AerialPlannar::splineInitThread(){
-    spline_ = boost::shared_ptr<BsplineGenerator>(new BsplineGenerator(nh_, nhp_, 50.0));
+    spline_ = boost::shared_ptr<BsplineGenerator>(new BsplineGenerator(nh_, nhp_, trajectory_period_, bspline_degree_));
     spline_generated_flag_ = true;
     ROS_INFO("bspline initalized.");
   }

@@ -5,6 +5,11 @@
   <node pkg="bspline_generator" type="aerial_plannar_node" name="aerial_plannar" output="screen">
     <param name="real_machine" value="$(arg real_machine)" />
     <param name="debug_output" value="false" />
+    <param name="control_frequency" value="100.0" />
+
+    <!-- trajectory relate -->
+    <param name="bspline_degree" value="5" />
+    <param name="trajectory_period" value="50.0" />
 
     <param name="target_offset_x" value="1.4" />
     <param name="target_offset_y" value="0.0" />

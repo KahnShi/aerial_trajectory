@@ -52,7 +52,7 @@ namespace bspline_generator{
   #define PI 3.1415926
   class BsplineGenerator{
   public:
-    BsplineGenerator(ros::NodeHandle nh, ros::NodeHandle nhp, double period);
+    BsplineGenerator(ros::NodeHandle nh, ros::NodeHandle nhp, double period, int bspline_degree);
     ~BsplineGenerator();
     void manuallySetControlPts();
     void displayBspline();
@@ -64,6 +64,7 @@ namespace bspline_generator{
     ros::NodeHandle nh_;
     ros::NodeHandle nhp_;
     double period_;
+    int deg_;
     boost::shared_ptr<TinysplineInterface> bspline_ptr_;
     ControlPoints* control_pts_ptr_;
     ros::ServiceClient sampling_plannar_client_;

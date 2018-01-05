@@ -36,10 +36,11 @@
 #include <bspline_generator/BsplineGenerator.h>
 
 namespace bspline_generator{
-  BsplineGenerator::BsplineGenerator(ros::NodeHandle nh, ros::NodeHandle nhp, double period){
+  BsplineGenerator::BsplineGenerator(ros::NodeHandle nh, ros::NodeHandle nhp, double period, int bspline_degree){
     nh_ = nh;
     nhp_ = nhp;
     period_ = period;
+    deg_ = bspline_degree;
     sampling_plannar_client_ = nh_.serviceClient<gap_passing::Keyposes>("keyposes_server");
     bspline_ptr_ = boost::shared_ptr<TinysplineInterface>(new TinysplineInterface(nh_, nhp_, std::string("/path"),
                                                                                   std::string("/nav"))); // Hydrus odometry frame id is /nav
@@ -74,7 +75,7 @@ namespace bspline_generator{
     else{
       control_pts_ptr_->num = keyposes_srv.response.states_cnt + 2;
       control_pts_ptr_->dim = keyposes_srv.response.dim;
-      control_pts_ptr_->degree = 5; // todo
+      control_pts_ptr_->degree = deg_;
       control_pts_ptr_->is_uniform = true; // todo
       control_pts_ptr_->start_time = 0.0;
       control_pts_ptr_->end_time = period_;

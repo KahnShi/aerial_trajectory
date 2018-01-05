@@ -81,6 +81,8 @@ namespace aerial_plannar{
     bool move_topic_recv_flag_;
     boost::thread spline_init_thread_;
     double controller_freq_;
+    double trajectory_period_;
+    int bspline_degree_;
     ros::Timer plannar_timer_;
     double move_start_time_;
     tf::Vector3 target_offset_;
