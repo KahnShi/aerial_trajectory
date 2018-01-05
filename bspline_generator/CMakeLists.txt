@@ -67,12 +67,6 @@ add_library(AerialControllerInterface src/AerialControllerInterface.cpp)
 add_dependencies(AerialControllerInterface ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(AerialControllerInterface ${catkin_LIBRARIES})
 
-add_executable(bspline_generator_node src/bspline_generator_node.cpp)
-# set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(bspline_generator_node
-  ${catkin_LIBRARIES} BsplineGenerator)
-
 add_executable(aerial_plannar_node src/aerial_plannar_node.cpp)
 target_link_libraries(aerial_plannar_node
   ${catkin_LIBRARIES} AerialPlannar AerialControllerInterface BsplineGenerator)
