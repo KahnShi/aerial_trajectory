@@ -3,7 +3,6 @@
   <arg name="auto_takeoff" default="false" />
 
   <node pkg="bspline_generator" type="aerial_plannar_node" name="aerial_plannar" output="screen">
-    <param name="real_machine" value="$(arg real_machine)" />
     <param name="debug_output" value="false" />
     <param name="control_frequency" value="100.0" />
 

@@ -42,7 +42,6 @@ namespace aerial_plannar{
     joint_num_ = 3;
     double target_offset_x, target_offset_y;
     start_pose_.resize(3); end_pose_.resize(3);
-    nhp_.param("real_machine", real_machine_flag_, false);
     nhp_.param("control_frequency", controller_freq_, 100.0);
     nhp_.param("trajectory_period", trajectory_period_, 50.0);
     nhp_.param("bspline_degree", bspline_degree_, 5);
